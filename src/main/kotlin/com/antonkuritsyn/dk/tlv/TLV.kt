@@ -1,4 +1,4 @@
-package com.javster.tlv
+package com.javster.tlv.com.antonkuritsyn.dk.tlv
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -40,7 +40,7 @@ class TLV(
 }
 
 fun parseTlv(bytes: ByteArray): List<TLV> {
-    val tlvs = mutableListOf<TLV>()
+    val result = mutableListOf<TLV>()
     var currentIndex = 0
     while (currentIndex < bytes.size) {
         val isTwoBytesTag = bytes[currentIndex].isTwoByteTag()
@@ -85,10 +85,10 @@ fun parseTlv(bytes: ByteArray): List<TLV> {
         val offset = lengthPartitionStart + lengthSize
         val value = bytes.slice(offset..<offset + length).toByteArray()
         currentIndex += tagSize + lengthSize + length
-        tlvs.add(TLV(tag, value))
+        result.add(TLV(tag, value))
     }
 
-    return tlvs
+    return result
 }
 
 /**

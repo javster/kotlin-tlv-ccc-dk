@@ -1,4 +1,4 @@
-package com.javster.tlv
+package com.javster.tlv.com.antonkuritsyn.dk.tlv
 
 import java.nio.ByteBuffer
 import kotlin.test.Test
@@ -14,21 +14,6 @@ class TlvTest {
         assert(0x9F.toByte().isTwoByteTag())
         assertFalse(0x80.toByte().isTwoByteTag())
         assertFalse(0xFD.toByte().isTwoByteTag())
-    }
-
-    @Test
-    fun exp() {
-        val length = 1024
-        ByteBuffer.allocate(2).putShort(length.toShort()).array()
-        val bytes = byteArrayOf((0x82).toByte()) + ByteBuffer.allocate(2).putShort(length.toShort()).array()
-
-        val lengthSize = 1.coerceAtLeast(bytes[0].toInt() and 0xFF - 0x80)
-        val v = bytes.slice(1.. lengthSize).toByteArray()
-        val i = ByteBuffer.wrap(ByteArray(4) { i ->
-            val offset = v.size - 4 + i
-            if (offset < 0) 0 else v[offset]
-        }).getInt()
-        println(i)
     }
 
     @Test
