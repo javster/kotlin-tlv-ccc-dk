@@ -15,7 +15,6 @@ class TLV(
 
     fun serialize(): ByteArray {
         val tagMvb = (tag shr 8).toByte()
-        /** Two byte tags always follow xFxx xxxx hex-pattern **/
         val isTwoBytesTag = tagMvb.isTwoByteTag()
         val tag = if (isTwoBytesTag) {
             ByteBuffer.allocate(2).putShort(tag.toShort()).array()
@@ -56,20 +55,28 @@ fun parseTlv(bytes: ByteArray): List<TLV> {
         val tagSize = if (isTwoBytesTag) 2 else 1
 
         val lengthPartitionStart = currentIndex + tagSize
-        val lengthSize = 1.coerceAtLeast(bytes[lengthPartitionStart] - 0x80)
+        val extraLength = 0.coerceAtLeast((bytes[lengthPartitionStart].toInt() and 0xFF) - 0x80)
+        val lengthSize = if (extraLength == 0) {
+            1
+        } else {
+            extraLength + 1
+        }
 
         val length = if (lengthSize == 1) {
             bytes[lengthPartitionStart].toInt()
         } else {
-            val v = bytes.slice(lengthPartitionStart + 1..lengthPartitionStart + lengthSize).toByteArray()
-            ByteBuffer.wrap(ByteArray(4) { if (it < v.size) v[it] else 0 }).getInt()
+            val v = bytes.slice(lengthPartitionStart + 1..<lengthPartitionStart + lengthSize).toByteArray()
+            ByteBuffer.wrap(ByteArray(4) { index ->
+                val offset = v.size - 4 + index
+                if (offset < 0) 0 else v[offset]
+            }).getInt()
         }
 
         if (lengthSize == 0) {
             throw IllegalArgumentException("Size can't be 0")
         }
-        if (lengthSize > 2) {
-            throw IllegalArgumentException("Can't process size more than 2 bytes")
+        if (lengthSize > 3) {
+            throw IllegalArgumentException("Can't process lengths more than 65535")
         }
         if (length > bytes.size - tagSize - lengthSize) {
             throw IllegalArgumentException("Length value and real length are different")
@@ -84,6 +91,10 @@ fun parseTlv(bytes: ByteArray): List<TLV> {
     return tlvs
 }
 
+/**
+ * CCC DK specific interpretation
+ * e.g. 7F, 5F, 9F
+**/
 fun Byte.isTwoByteTag(): Boolean {
     val i = this.toInt() and 0xFF
     return i % 16 == 0xF
