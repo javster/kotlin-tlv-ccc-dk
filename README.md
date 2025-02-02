@@ -3,7 +3,9 @@
 Kotlin DK TLV Library is a convenient way to support TLV in the way it provided in Connectivity Car Concorcium Digital Key documentation.
 
 ✨ Key features
+
 ✅ 2-byte tags correct serialization/deserialization (5F, 7F, 9F like)
+
 ✅ Simple and straightforward API
 
 ## Quick start
