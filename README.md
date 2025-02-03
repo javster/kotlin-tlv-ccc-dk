@@ -11,16 +11,18 @@ Kotlin DK TLV Library is a convenient way to support TLV in the way it provided 
 ## Quick start
 
 ```
-//Simple TLV
+//Creates TLV with 0x80 tag and 0x0001 data
 val myTlv = TLV(0x80, byteArrayOf(0x00, 0x01))
-val tlv = parseTlv(tlvBytes)[0] 
-//tlv now contains byte array 0x80020001
+//TLV serialization to byte array (0x80020001)
+val tlvBytes = myTlv.serialize()
+//TLV deserialization to List<TLV>
+val tlv = deserialize(tlvBytes)
 
 //Nested TLV
 val nestedTlv = TLV(0x69, 
-     TLV(0x70, byteArrayOf(0x25, 0x34)).serialize() // 0x70022534
+    TLV(0x70, byteArrayOf(0x25, 0x34)).serialize() 
 ).serialize()
-//tlv now contains serialized value 0x700470022534
+
 
 
 

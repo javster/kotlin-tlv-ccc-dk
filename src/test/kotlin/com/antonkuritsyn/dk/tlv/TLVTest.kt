@@ -1,25 +1,26 @@
-package com.javster.tlv.com.antonkuritsyn.dk.tlv
+package com.antonkuritsyn.dk.tlv
 
+import com.antonkuritsyn.dk.tlv.TLV.Companion.deserialize
 import java.nio.ByteBuffer
 import kotlin.test.Test
-import kotlin.test.assertFalse
 
 @OptIn(ExperimentalStdlibApi::class)
 class TlvTest {
 
     @Test
-    fun twoByteTagTests() {
-        assert(0x5F.toByte().isTwoByteTag())
-        assert(0x7F.toByte().isTwoByteTag())
-        assert(0x9F.toByte().isTwoByteTag())
-        assertFalse(0x80.toByte().isTwoByteTag())
-        assertFalse(0xFD.toByte().isTwoByteTag())
+    fun test1() {
+        //Creates TLV with 0x80 tag and 0x0001 data
+        val myTlv = TLV(0x80, byteArrayOf(0x00, 0x01))
+        //TLV serialization to byte array (0x80020001)
+        val tlvBytes = myTlv.serialize()
+        //TLV deserialization to List<TLV>
+        val tlv = deserialize(tlvBytes)
     }
 
     @Test
     fun bigPayloadTest() {
         val tlvBytes = TLV(ONE_BYTE_TAG, ByteBuffer.allocate(BIG_PAYLOAD_LENGTH).array()).serialize()
-        val tlv = parseTlv(tlvBytes)[0]
+        val tlv = deserialize(tlvBytes)[0]
         assert(tlv.value.size == BIG_PAYLOAD_LENGTH)
     }
 
@@ -29,7 +30,7 @@ class TlvTest {
         val serializationResult = tlv.serialize()
         assert(serializationResult.toHexString().contentEquals(ONE_BYTE_TAG_TLV))
 
-        val deserialized = parseTlv(serializationResult)
+        val deserialized = deserialize(serializationResult)
         assert(deserialized.size == 1)
 
         val firstTag = deserialized[0]
@@ -45,13 +46,13 @@ class TlvTest {
 
         assert(functionStatus.toHexString().uppercase().contentEquals(TWO_BYTE_TAG_TLV))
 
-        val tlvs = parseTlv(functionStatus)
+        val tlvs = deserialize(functionStatus)
         assert(tlvs.size == 1)
 
         val rootTag = tlvs[0]
         assert(rootTag.tag == TWO_BYTE_TAG)
 
-        val nestedTlvs = parseTlv(rootTag.value)
+        val nestedTlvs = deserialize(rootTag.value)
         assert(nestedTlvs.size == 1)
 
         val centralLocking = nestedTlvs[0]
